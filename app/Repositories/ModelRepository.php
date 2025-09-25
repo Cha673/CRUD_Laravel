@@ -37,6 +37,13 @@ class ModelRepository implements UserRepositoryInterface
         if (!$record) {
             return null; // ou lancer une exception si tu préfères
         }
+        //si l'email change, remettre à jour le statut du profil
+        if (isset($data['email']) && $data['email'] !== $record->email) {
+            $data['profil'] = str_ends_with($data['email'], '@company.com') 
+                ? 'Administrateur' 
+                : 'Utilisateur standard';
+        }
+
         $record->update($data);
         return $record;
     }
@@ -45,7 +52,7 @@ class ModelRepository implements UserRepositoryInterface
     {
         $record = $this->model->find($id);
         if (!$record) {
-            return false; // ou lancer une exception
+            return false; 
         }
         return $record->delete(); // renvoie true si succès
     }

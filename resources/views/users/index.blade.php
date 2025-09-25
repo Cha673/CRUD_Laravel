@@ -17,6 +17,7 @@
                     <th>Prénom</th>
                     <th>Email</th>
                     <th>Téléphone</th>
+                    <th>Profil</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,6 +27,7 @@
                     <td>{{ $user->prenom }}</td>
                     <td>{{ $user->email }}</td>
                     <td>{{ $user->telephone }}</td>
+                    <td>{{ $user->profil }}</td>
                     <td>
                         <!-- Bouton Modifier -->
                         <a href="{{ route('users.edit', $user->id) }}" class="btn btn-sm btn-warning">Modifier</a>
