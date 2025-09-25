@@ -1,7 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\CrudController;
+use App\Http\Controllers\YourController;
 
-// Routes API CRUD
-Route::apiResource('items', CrudController::class);
+// Routes pour les utilisateurs
+Route::get('/users', [YourController::class, 'index']);
+Route::post('/users', [YourController::class, 'add']);
