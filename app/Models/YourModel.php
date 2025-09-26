@@ -24,21 +24,4 @@ class YourModel extends Model
     
     ];
 
-    //en fonction du mail, définit le profil à l'aide de la fonction déteminerProfil
-    public function setEmailAttribute($value)
-    {
-        $this->attributes['email'] = $value;
-        
-        // Définir automatiquement le profil si ce n'est pas déjà fait
-        if (!isset($this->attributes['profil']) || empty($this->attributes['profil'])) {
-            $this->attributes['profil'] = $this->determinerProfil($value);
-        }
-    }
-
-
-    //déterminer le profi en fonction du mail
-    private function determinerProfil($email)
-    {
-        return str_ends_with($email, '@company.com') ? 'Administrateur' : 'Utilisateur standard';
-    }
 }
