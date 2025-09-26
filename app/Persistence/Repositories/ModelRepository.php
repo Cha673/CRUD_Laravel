@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Persistence\Repositories;
 
-use App\Models\YourModel;
-use App\Repositories\Interfaces\UserRepositoryInterface;
+use App\Domain\Entities\YourModel;
+use App\Persistence\Interfaces\UserRepositoryInterface;
 
 class ModelRepository implements UserRepositoryInterface
 {

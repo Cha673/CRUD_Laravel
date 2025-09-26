@@ -1,7 +1,8 @@
 <?php
-namespace App\Http\Controllers;
+namespace App\Presentation\Http\Controllers\Web;
 
-use App\Services\Interfaces\UserServiceInterface;  
+use App\Http\Controllers\Controller;
+use App\Application\Interfaces\UserServiceInterface;  
 use Illuminate\Http\Request;
 
 class YourController extends Controller

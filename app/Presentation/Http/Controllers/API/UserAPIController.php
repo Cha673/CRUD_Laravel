@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Presentation\Http\Controllers\API;
 
 use Illuminate\Http\Request;
-use App\Services\Interfaces\UserServiceInterface;
+use App\Application\Interfaces\UserServiceInterface;
 
 class UserApiController extends Controller
 {
