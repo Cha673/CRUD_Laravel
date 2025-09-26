@@ -2,11 +2,18 @@
 
 namespace App\Application\Interfaces;
 
+use App\Application\DTO\UserDTO;
+use App\Domain\Entity\UserEntity;
+
 interface UserServiceInterface
 {
-    public function getAllUsers();
-    public function createUser(array $data);
-    public function findUser($id);
-    public function updateUser($id, array $data);
-    public function deleteUser($id);
+    public function getAllUsers(): array;
+
+    public function createUser(UserDTO $dto):  UserEntity;
+
+    public function findUser($id): ?UserEntity;
+
+    public function updateUser($id, UserDTO $dto): ?UserEntity;
+
+    public function deleteUser($id): bool;
 }

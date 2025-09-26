@@ -2,58 +2,62 @@
 
 namespace App\Persistence\Repositories;
 
-use App\Domain\Entities\YourModel;
+use App\Domain\Entity\UserEntity;
 use App\Persistence\Interfaces\UserRepositoryInterface;
+use App\Models\User;
 
 class ModelRepository implements UserRepositoryInterface
 {
-    protected $model;
 
-    public function __construct()
+    // Récupère tous les utilisateurs et retourne un tableau d'Entity UserEntity
+    public function getAll(): array
     {
-        $this->model = new YourModel();
+        return (new User)->newQuery()->get()->map(function ($m) {
+            return new UserEntity($m->id !== null ? (int) $m->id : null,$m->nom, $m->prenom, $m->email, $m->telephone, $m->profil);
+        })->toArray();
     }
 
-    public function getAll()
+    // Crée un nouvel utilisateur à partir d'une Entity UserEntity
+    public function create(UserEntity $user): UserEntity
     {
-        // Récupère tous les utilisateurs de la base de données
-        return $this->model->all();
+        $model = (new User)->newQuery()->create([
+            'nom' => $user->nom,
+            'prenom' => $user->prenom,
+            'email' => $user->email,
+            'telephone' => $user->telephone,
+            'profil' => $user->profil,
+        ]);
+
+        return new UserEntity( $model->id !== null ? (int) $model->id : null,$model->nom, $model->prenom, $model->email, $model->telephone, $model->profil);
     }
 
-    public function create(array $data)
+    // Trouve un utilisateur par ID et retourne une Entity UserEntity
+    public function find($id): ?UserEntity
     {
-        // Crée un nouvel utilisateur avec les données fournies
-        return $this->model->create($data);
+        $m = (new User)->newQuery()->where('id', $id)->first();
+
+        return new UserEntity($m->id !== null ? (int) $m->id : null, $m->nom, $m->prenom, $m->email, $m->telephone, $m->profil);
     }
 
-    public function find($id)
+    // Met à jour un utilisateur à partir d'une Entity UserEntity
+    public function update($id, UserEntity $user): ?UserEntity
     {
-        return $this->model->find($id);
+        $record = (new User)->newQuery()->where('id', $id)->first();
+        $record->nom=$user->nom;
+        $record->prenom=$user->prenom;
+        $record->email=$user->email;
+        $record->telephone=$user->telephone;
+        $record->profil=$user->profil;
+        $record->save();
+
+        return new UserEntity($record->id !== null ? (int) $record->id : null, $record->nom, $record->prenom, $record->email, $record->telephone, $record->profil);
     }
 
-    public function update($id, array $data)
+    // Supprime un utilisateur par ID
+    public function delete($id): bool
     {
-        $record = $this->model->find($id);
-        if (!$record) {
-            return null; // ou lancer une exception si tu préfères
-        }
-        //si l'email change, remettre à jour le statut du profil
-        if (isset($data['email']) && $data['email'] !== $record->email) {
-            $data['profil'] = str_ends_with($data['email'], '@company.com') 
-                ? 'Administrateur' 
-                : 'Utilisateur standard';
-        }
+        $record = (new User)->newQuery()->where('id', $id)->delete();
 
-        $record->update($data);
         return $record;
-    }
-
-    public function delete($id)
-    {
-        $record = $this->model->find($id);
-        if (!$record) {
-            return false; 
-        }
-        return $record->delete(); // renvoie true si succès
     }
 }

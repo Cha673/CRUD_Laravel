@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Presentation\Http\Controllers\API;
+namespace App\Presentation\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use App\Application\Interfaces\UserServiceInterface;
 
 class UserApiController extends Controller
@@ -32,7 +33,7 @@ class UserApiController extends Controller
     }
 
     // Créer un nouvel utilisateur
-    public function store(Request $request)
+    public function add(Request $request)
     {
         $user = $this->userService->createUser($request->all());
         return response()->json($user, 201);

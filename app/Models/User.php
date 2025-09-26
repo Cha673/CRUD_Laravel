@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Domain\Entities;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class YourModel extends Model
+class User extends Model
 {
     protected $fillable = [
         'nom',

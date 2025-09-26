@@ -1,0 +1,21 @@
+meta {
+  name: crée une requete
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:8081/users
+  body: none
+  auth: none
+}
+
+script:pre-request {
+  {
+    "nom": "Dupont",
+    "prenom": "Bruno",
+    "email": "bruno@company.com",
+    "telephone": "0123456789"
+  }
+  
+}

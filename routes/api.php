@@ -1,19 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Presentation\Http\Controllers\API\USerAPIController;
+use App\Presentation\Http\Controllers\Api\UserApiController;
 
 // Liste tous les utilisateurs
-Route::get('/users', [YourController::class, 'index']);
+Route::get('/users', [UserApiController::class, 'index']);
 
 // Créer un utilisateur
-Route::post('/users', [YourController::class, 'add']);
+Route::post('/users', [UserApiController::class, 'add']);
 
 // Afficher un utilisateur par ID
-Route::get('/users/{id}', [YourController::class, 'show']);
+Route::get('/users/{id}', [UserApiController::class, 'show']);
 
 // Modifier un utilisateur
-Route::put('/users/{id}', [YourController::class, 'update']);
+Route::put('/users/{id}', [UserApiController::class, 'update']);
 
 // Supprimer un utilisateur
-Route::delete('/users/{id}', [YourController::class, 'destroy']);
+Route::delete('/users/{id}', [UserApiController::class, 'destroy']);

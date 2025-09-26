@@ -17,10 +17,14 @@ class AppServiceProvider extends ServiceProvider
     {
         // LIAISON : Interface → Repository
         $this->app->bind(
-            UserRepositoryInterface::class,    // ← L'interface demandée
-            ModelRepository::class             // ← Le repository concret à donner
+            \App\Application\Interfaces\UserServiceInterface::class,
+            \App\Application\Services\UserService::class
         );
-        $this->app->bind(UserServiceInterface::class, UserService::class);
+        
+        $this->app->bind(
+            \App\Persistence\Interfaces\UserRepositoryInterface::class,
+            \App\Persistence\Repositories\ModelRepository::class
+        );
     }
 
     /**

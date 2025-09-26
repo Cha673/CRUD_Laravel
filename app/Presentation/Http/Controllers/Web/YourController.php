@@ -1,13 +1,15 @@
 <?php
+
 namespace App\Presentation\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Application\Interfaces\UserServiceInterface;  
+use App\Application\DTO\UserDTO;
 use Illuminate\Http\Request;
 
 class YourController extends Controller
 {
-    protected $userService;  
+    protected UserServiceInterface $userService;  
 
     public function __construct(UserServiceInterface $userService)
     {
@@ -17,7 +19,7 @@ class YourController extends Controller
     // Afficher tous les utilisateurs
     public function index()
     {
-        $users = $this->userService->getAllUsers();  //  Appel du Service
+        $users = $this->userService->getAllUsers();
         return view('users.index', compact('users'));
     }
 
@@ -38,15 +40,16 @@ class YourController extends Controller
                 'telephone' => 'required|string|max:20'
             ]);
 
-            $newUser = $this->userService->createUser($request->all());
+            // Transformer le Request en DTO
+            $dto = new UserDTO($request->only(['nom','prenom','email','telephone']));
+            $newUser = $this->userService->createUser($dto);
             
             return redirect()->route('users.index')
-                           ->with('success', 'Utilisateur créé avec le profil : ' . $newUser->profil);
-                           
+                             ->with('success', 'Utilisateur créé avec le profil : ' . $newUser->profil);
         } catch (\Exception $e) {
             return redirect()->back()
-                           ->withInput()
-                           ->with('error', 'Erreur : ' . $e->getMessage());
+                             ->withInput()
+                             ->with('error', 'Erreur : ' . $e->getMessage());
         }
     }
 
@@ -54,7 +57,7 @@ class YourController extends Controller
     public function edit($id)
     {
         try {
-            $user = $this->userService->findUser($id);  //  Appel du Service
+            $user = $this->userService->findUser($id);
             
             if (!$user) {
                 return redirect()->route('users.index')->with('error', 'Utilisateur introuvable');
@@ -69,6 +72,7 @@ class YourController extends Controller
     // Modifier un utilisateur
     public function update(Request $request, $id)
     {
+    
         try {
             $request->validate([
                 'nom' => 'required|string|max:255',
@@ -77,21 +81,29 @@ class YourController extends Controller
                 'telephone' => 'required|string|max:20'
             ]);
 
-            $updatedUser = $this->userService->updateUser($id, $request->all());
-            
+            // Crée un DTO à partir des données du formulaire
+            $dto = new UserDTO($request->only(['nom','prenom','email','telephone']));
+
+            // Appel du service avec le DTO
+            $updatedUser = $this->userService->updateUser($id, $dto);
+        
+
             if (!$updatedUser) {
-                return redirect()->route('users.index')->with('error', 'Impossible de mettre à jour l\'utilisateur');
+                return redirect()->route('users.index')
+                                ->with('error', 'Impossible de mettre à jour l\'utilisateur');
             }
-            
+
             return redirect()->route('users.index')
-                           ->with('success', 'Utilisateur mis à jour. Profil : ' . $updatedUser->profil);
-                           
+                            ->with('success', 'Utilisateur mis à jour. Profil : ' . $updatedUser->profil);
+
         } catch (\Exception $e) {
+            dd($e);
             return redirect()->back()
-                           ->withInput()
-                           ->with('error', 'Erreur : ' . $e->getMessage());
+                            ->withInput()
+                            ->with('error', 'Erreur : ' . $e->getMessage());
         }
     }
+
 
     // Supprimer un utilisateur
     public function destroy($id)

@@ -2,51 +2,75 @@
 
 namespace App\Application\Services;
 
+use App\Application\DTO\UserDTO;
+use App\Domain\Entity\UserEntity;
 use App\Persistence\Interfaces\UserRepositoryInterface;
 use App\Application\Interfaces\UserServiceInterface;
 
 class UserService implements UserServiceInterface
 {
-    protected $userRepository;
+    protected UserRepositoryInterface $userRepository;
 
     public function __construct(UserRepositoryInterface $userRepository)
     {
         $this->userRepository = $userRepository;
     }
 
-    public function getAllUsers()
+    // Récupère tous les utilisateurs
+    public function getAllUsers(): array
     {
         return $this->userRepository->getAll();
     }
 
-    public function createUser(array $data)
+    // Crée un nouvel utilisateur
+    public function createUser(UserDTO $dto): UserEntity
     {
-        $data['profil'] = $this->determinerProfil($data['email']);
-        return $this->userRepository->create($data);
+        $profil = $this->determinerProfil($dto->email);
+
+        $user = new UserEntity(
+            null,              // Pas d'ID pour la création
+            $dto->nom,
+            $dto->prenom,
+            $dto->email,
+            $dto->telephone,
+            $profil
+        );
+
+        return $this->userRepository->create($user);
     }
 
-    public function findUser($id)
+    // Trouve un utilisateur par ID
+    public function findUser($id): ?UserEntity
     {
         return $this->userRepository->find($id);
     }
 
-    public function updateUser($id, array $data)
+    // Met à jour un utilisateur
+    public function updateUser($id, UserDTO $dto): ?UserEntity
     {
-        if (isset($data['email'])) {
-            $data['profil'] = $this->determinerProfil($data['email']);
-        }
-        return $this->userRepository->update($id, $data);
+        $profil = $this->determinerProfil($dto->email);
+
+        $user = new UserEntity(
+            (int)$id,       
+            $dto->nom,
+            $dto->prenom,
+            $dto->email,
+            $dto->telephone,
+            $profil
+        );
+
+        return $this->userRepository->update($id, $user);
     }
 
-    public function deleteUser($id)
+    // Supprime un utilisateur
+    public function deleteUser($id): bool
     {
         return $this->userRepository->delete($id);
     }
 
-    private function determinerProfil($email)
+    // Détermine le profil en fonction du mail
+    private function determinerProfil(string $email): string
     {
-        return str_ends_with($email, '@company.com')
-            ? 'Administrateur'
-            : 'Utilisateur standard';
+        return str_ends_with($email, '@company.com') ? 'Administrateur' : 'Utilisateur standard';
     }
 }
