@@ -1,42 +1,44 @@
-Cette API suit les principes de l'architecture hexagonale avec 5 couches distinctes pour garantir une séparation claire des responsabilités et une haute testabilité.
+Ce projet utilise le pattern CQRS (Command Query Responsibility Segregation) pour séparer les opérations d'écriture (Commands) des opérations de lecture (Queries).
+Structure
+Commands : Intentions de modification (Create, Update, Delete)
 
-Rôles des composants
-Presentation
+CreateUserCommand, UpdateUserCommand, DeleteUserCommand
 
-YourController.php : Point d'entrée HTTP, gestion des requêtes/réponses
+Queries : Demandes de lecture (Get, Find, List)
 
-Application
+GetAllUsersQuery, GetUserByIdQuery
 
-UserService.php : logique métier
-UserDTO.php : Objets de transfert de données
-UserServiceInterface.php : Interface
+Handlers : Logique métier spécifique à chaque opération
 
-Domain
+Un handler par command/query dans les dossiers Commands/ et Queries/
 
-UserEntity.php : Logique métier pure, règles business
+Buses : Dispatchers qui lient les messages aux handlers
 
-Persistence
+CommandBus pour les écritures, QueryBus pour les lectures
 
-ModelRepository.php : Accès aux données
-UserRepositoryInterface.php : Contrats de persistance
+UserService : Interface inchangée qui utilise les buses en interne
+Fonctionnement
+Écriture : Contrôleur → UserService → CommandBus → CommandHandler → Repository
+Lecture : Contrôleur → UserService → QueryBus → QueryHandler → Repository
+Le UserService reste identique pour les contrôleurs mais utilise maintenant CQRS en arrière-plan.
+Avantages
+Séparation claire : Lectures et écritures complètement séparées
+Testabilité : Chaque handler testable individuellement
+Évolutivité : Nouvelles fonctionnalités = nouveau message + handler
+Maintenabilité : Logique organisée et facile à localiser
+Performance : Optimisations spécifiques possibles pour lectures/écritures
+Configuration Laravel
+Tout est configuré dans AppServiceProvider :
 
-Models
+Enregistrement des buses comme singletons
+Liaison des handlers avec injection de dépendances
+Configuration automatique via boot()
 
-User.php : Structure des entités métier
+Migration
+Aucun changement nécessaire dans les contrôleurs existants. L'interface UserServiceInterface est préservée. La logique métier (profil automatique selon l'email) est maintenue.
+Logique métier
 
-Principe de dépendance
+Email @company.com → Profil "Administrateur"
+Autres emails → Profil "Utilisateur standard"
 
-Presentation dépend de Application
-Application dépend de Domain
-Persistence dépend de Domain
-Domain ne dépend de rien (cœur métier isolé)
-
-Exemple de flux
-
-Frontend envoie requête HTTP
-YourController (Presentation) reçoit et valide
-YourController appelle UserService (Application)
-UserService utilise UserEntity (Domain) pour la logique métier
-UserService appelle ModelRepository (Persistence) via interface
-ModelRepository utilise User.php (Models) pour la BDD
-Les données remontent vers le frontend via DTO
+Cette architecture offre une séparation claire des responsabilités tout en gardant une utilisation simple pour les développeurs.

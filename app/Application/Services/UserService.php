@@ -3,74 +3,62 @@
 namespace App\Application\Services;
 
 use App\Application\DTO\UserDTO;
-use App\Domain\Entity\UserEntity;
-use App\Persistence\Interfaces\UserRepositoryInterface;
 use App\Application\Interfaces\UserServiceInterface;
+use App\Application\Interfaces\CommandBusInterface;
+use App\Application\Interfaces\QueryBusInterface;
+use App\Application\Commands\CreateUserCommand;
+use App\Application\Commands\UpdateUserCommand;
+use App\Application\Commands\DeleteUserCommand;
+use App\Application\Queries\GetAllUsersQuery;
+use App\Application\Queries\GetUserByIdQuery;
+use App\Domain\Entity\UserEntity;
 
 class UserService implements UserServiceInterface
 {
-    protected UserRepositoryInterface $userRepository;
+    public function __construct(
+        private CommandBusInterface $commandBus,
+        private QueryBusInterface $queryBus
+    ) {}
 
-    public function __construct(UserRepositoryInterface $userRepository)
-    {
-        $this->userRepository = $userRepository;
-    }
 
-    // Récupère tous les utilisateurs
     public function getAllUsers(): array
     {
-        return $this->userRepository->getAll();
+        return $this->queryBus->dispatch(new GetAllUsersQuery());
     }
 
-    // Crée un nouvel utilisateur
+
     public function createUser(UserDTO $dto): UserEntity
     {
-        $profil = $this->determinerProfil($dto->email);
-
-        $user = new UserEntity(
-            null,              // Pas d'ID pour la création
-            $dto->nom,
-            $dto->prenom,
-            $dto->email,
-            $dto->telephone,
-            $profil
+        return $this->commandBus->dispatch(
+            new CreateUserCommand(
+                $dto->nom,
+                $dto->prenom,
+                $dto->email,
+                $dto->telephone
+            )
         );
-
-        return $this->userRepository->create($user);
     }
 
-    // Trouve un utilisateur par ID
-    public function findUser($id): ?UserEntity
+    public function findUser(int $id): ?UserEntity
     {
-        return $this->userRepository->find($id);
+        return $this->queryBus->dispatch(new GetUserByIdQuery($id));
     }
 
-    // Met à jour un utilisateur
-    public function updateUser($id, UserDTO $dto): ?UserEntity
+    public function updateUser(int $id, UserDTO $dto): ?UserEntity
     {
-        $profil = $this->determinerProfil($dto->email);
-
-        $user = new UserEntity(
-            (int)$id,       
-            $dto->nom,
-            $dto->prenom,
-            $dto->email,
-            $dto->telephone,
-            $profil
+        return $this->commandBus->dispatch(
+            new UpdateUserCommand(
+                $id,
+                $dto->nom,
+                $dto->prenom,
+                $dto->email,
+                $dto->telephone
+            )
         );
-
-        return $this->userRepository->update($id, $user);
     }
 
-    // Supprime un utilisateur
-    public function deleteUser($id): bool
+    public function deleteUser(int $id): bool
     {
-        return $this->userRepository->delete($id);
-    }
-
-    // Détermine le profil en fonction du mail
-    private function determinerProfil(string $email): string
-    {
-        return str_ends_with($email, '@company.com') ? 'Administrateur' : 'Utilisateur standard';
+        return $this->commandBus->dispatch(new DeleteUserCommand($id));
     }
 }
