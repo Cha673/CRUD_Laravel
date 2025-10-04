@@ -43,82 +43,91 @@ Autres emails → Profil "Utilisateur standard"
 
 Cette architecture offre une séparation claire des responsabilités tout en gardant une utilisation simple pour les développeurs.
 
+# Architecture CQRS (Command Query Responsibility Segregation)
+
+## Schéma de l'architecture
+
+```
+                        ┌──────────────┐
+                        │   Frontend   │
+                        └───────┬──────┘
                                 │
                         Requête HTTP
                                 │
                                 ▼
-
 ┌─────────────────────────────────────────────────────────────┐
-│ COUCHE PRESENTATION │
-│ (YourController.php) │
-│ │
-│ • Reçoit et valide la requête │
-│ • Appelle UserService (interface inchangée) │
+│                   COUCHE PRESENTATION                       │
+│                   (YourController.php)                      │
+│                                                             │
+│     • Reçoit et valide la requête                          │
+│     • Appelle UserService (interface inchangée)            │
 └──────────────────────────┬──────────────────────────────────┘
-│
-▼
+                           │
+                           ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ COUCHE SERVICE │
-│ (UserService.php via Interface) │
-│ │
-│ • Interface identique pour les contrôleurs │
-│ • Utilise CQRS en arrière-plan │
+│                   COUCHE SERVICE                            │
+│              (UserService.php via Interface)                │
+│                                                             │
+│     • Interface identique pour les contrôleurs             │
+│     • Utilise CQRS en arrière-plan                         │
 └──────────────┬──────────────────────────┬───────────────────┘
-│ │
-│ │
-ÉCRITURE │ │ LECTURE
-│ │
-▼ ▼
-┌──────────────────────────┐ ┌──────────────────────────┐
-│ COMMAND BUS │ │ QUERY BUS │
-│ (Dispatcher d'écriture) │ │ (Dispatcher de lecture) │
-└────────────┬─────────────┘ └────────────┬─────────────┘
-│ │
-│ dispatch │ dispatch
-│ │
-▼ ▼
-┌──────────────────────────┐ ┌──────────────────────────┐
-│ COMMAND HANDLERS │ │ QUERY HANDLERS │
-│ │ │ │
-│ • CreateUserHandler │ │ • GetAllUsersHandler │
-│ • UpdateUserHandler │ │ • GetUserByIdHandler │
-│ • DeleteUserHandler │ │ │
-│ │ │ │
-│ Logique métier: │ │ Logique de lecture: │
-│ - Validation business │ │ - Récupération données │
-│ - Email @company.com │ │ - Filtrage │
-│ → Admin │ │ - Transformation │
-│ - Autres → User standard │ │ │
-└────────────┬─────────────┘ └────────────┬─────────────┘
-│ │
-│ │
-└───────────┬───────────────────┘
-│
-▼
-┌────────────────────────┐
-│ COUCHE PERSISTENCE │
-│ (ModelRepository.php) │
-│ │
-│ • Accès aux données │
-│ • CRUD opérations │
-└───────────┬────────────┘
-│
-▼
-┌──────────────┐
-│ DATABASE │
-└──────┬───────┘
-│
-│
-Réponse remonte
-│
-▼
-Repository → Handler → Bus
-│
-▼
-UserService
-│
-▼
-YourController
-│
-▼
-Réponse JSON
+               │                          │
+               │                          │
+    ÉCRITURE   │                          │   LECTURE
+               │                          │
+               ▼                          ▼
+┌──────────────────────────┐    ┌──────────────────────────┐
+│     COMMAND BUS          │    │      QUERY BUS           │
+│  (Dispatcher d'écriture) │    │  (Dispatcher de lecture) │
+└────────────┬─────────────┘    └────────────┬─────────────┘
+             │                               │
+             │ dispatch                      │ dispatch
+             │                               │
+             ▼                               ▼
+┌──────────────────────────┐    ┌──────────────────────────┐
+│   COMMAND HANDLERS       │    │    QUERY HANDLERS        │
+│                          │    │                          │
+│ • CreateUserHandler      │    │ • GetAllUsersHandler     │
+│ • UpdateUserHandler      │    │ • GetUserByIdHandler     │
+│ • DeleteUserHandler      │    │                          │
+│                          │    │                          │
+│ Logique métier:          │    │ Logique de lecture:      │
+│ - Validation business    │    │ - Récupération données   │
+│ - Email @company.com     │    │ - Filtrage               │
+│   → Admin                │    │ - Transformation         │
+│ - Autres → User standard │    │                          │
+└────────────┬─────────────┘    └────────────┬─────────────┘
+             │                               │
+             │                               │
+             └───────────┬───────────────────┘
+                         │
+                         ▼
+            ┌────────────────────────┐
+            │   COUCHE PERSISTENCE   │
+            │  (ModelRepository.php) │
+            │                        │
+            │  • Accès aux données   │
+            │  • CRUD opérations     │
+            └───────────┬────────────┘
+                        │
+                        ▼
+                 ┌──────────────┐
+                 │   DATABASE   │
+                 └──────┬───────┘
+                        │
+                        │
+                Réponse remonte
+                        │
+                        ▼
+            Repository → Handler → Bus
+                        │
+                        ▼
+                   UserService
+                        │
+                        ▼
+                  YourController
+                        │
+                        ▼
+                  Réponse JSON
+
+```
