@@ -12,24 +12,43 @@ use App\Application\Commands\DeleteUserCommand;
 use App\Application\Queries\GetAllUsersQuery;
 use App\Application\Queries\GetUserByIdQuery;
 use App\Domain\Entity\UserEntity;
+use App\Application\Commands\CreateAccountCommand;
+use App\Application\Commands\DeleteAccountCommand;
+use App\Application\Handlers\Commands\CreateAccountCommandHandler;
+use App\Application\Handlers\Commands\DeleteAccountCommandHandler;
+use App\Persistence\Interfaces\AccountRepositoryInterface;
 
 class UserService implements UserServiceInterface
 {
-    public function __construct(
-        private CommandBusInterface $commandBus,
-        private QueryBusInterface $queryBus
-    ) {}
+    private CommandBusInterface $commandBus;
+    private QueryBusInterface $queryBus;
+    private AccountRepositoryInterface $accountRepository;
+    private CreateAccountCommandHandler $createAccountHandler;
+    private DeleteAccountCommandHandler $deleteAccountHandler;
 
+    public function __construct(
+        CommandBusInterface $commandBus,
+        QueryBusInterface $queryBus,
+        AccountRepositoryInterface $accountRepository,
+        CreateAccountCommandHandler $createAccountHandler,
+        DeleteAccountCommandHandler $deleteAccountHandler
+    ) {
+        $this->commandBus = $commandBus;
+        $this->queryBus = $queryBus;
+        $this->accountRepository = $accountRepository;
+        $this->createAccountHandler = $createAccountHandler;
+        $this->deleteAccountHandler = $deleteAccountHandler;
+    }
 
     public function getAllUsers(): array
     {
         return $this->queryBus->dispatch(new GetAllUsersQuery());
     }
 
-
     public function createUser(UserDTO $dto): UserEntity
     {
-        return $this->commandBus->dispatch(
+        // Création de l'utilisateur
+        $user = $this->commandBus->dispatch(
             new CreateUserCommand(
                 $dto->nom,
                 $dto->prenom,
@@ -37,6 +56,14 @@ class UserService implements UserServiceInterface
                 $dto->telephone
             )
         );
+
+        // Création automatique du compte associé
+        $name = $user->nom . ' ' . $user->prenom;
+        $this->createAccountHandler->handle(
+            new CreateAccountCommand($user->id, $name)
+        );
+
+        return $user;
     }
 
     public function findUser(int $id): ?UserEntity
@@ -59,6 +86,13 @@ class UserService implements UserServiceInterface
 
     public function deleteUser(int $id): bool
     {
+        // Supprimer le compte associé si existant
+        $account = $this->accountRepository->findByUserId($id);
+        if ($account) {
+            $this->deleteAccountHandler->handle(new DeleteAccountCommand($account->id));
+        }
+
+        // Supprimer l'utilisateur
         return $this->commandBus->dispatch(new DeleteUserCommand($id));
     }
 }

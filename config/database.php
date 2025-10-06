@@ -43,6 +43,15 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
+        'account_bdd' => [
+            'driver' => 'sqlite',
+            'database' => database_path('account.sqlite'),
+            'prefix' => '',
+            'foreign_key_constraints' => true,
+        ],
+
+        
+
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
