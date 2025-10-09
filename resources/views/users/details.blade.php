@@ -9,15 +9,7 @@
         <h1>Détails de l'utilisateur et comptes associés</h1>
         
         @if(isset($data['accounts']))
-            <!-- Debug info -->
-            <div class="alert alert-info">
-                Nombre de comptes trouvés : {{ is_array($data['accounts']) ? count($data['accounts']) : 'Non array' }}
-                <br>
-                Type de données : {{ gettype($data['accounts']) }}
-                <br>
-                Contenu : <pre>{{ print_r($data['accounts'], true) }}</pre>
-            </div>
-            
+        
             <div class="card mb-4">
                 <div class="card-header">
                     <h3>Comptes associés à l'utilisateur #{{$data['userId']}}</h3>
