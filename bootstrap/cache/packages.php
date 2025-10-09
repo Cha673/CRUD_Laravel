@@ -48,4 +48,11 @@
       0 => 'Phiki\\Adapters\\Laravel\\PhikiServiceProvider',
     ),
   ),
+  'vladimir-yuldashev/laravel-queue-rabbitmq' => 
+  array (
+    'providers' => 
+    array (
+      0 => 'VladimirYuldashev\\LaravelQueueRabbitMQ\\LaravelQueueRabbitMQServiceProvider',
+    ),
+  ),
 );

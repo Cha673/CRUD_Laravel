@@ -12,32 +12,21 @@ use App\Application\Commands\DeleteUserCommand;
 use App\Application\Queries\GetAllUsersQuery;
 use App\Application\Queries\GetUserByIdQuery;
 use App\Domain\Entity\UserEntity;
-use App\Application\Commands\CreateAccountCommand;
-use App\Application\Commands\DeleteAccountCommand;
-use App\Application\Handlers\Commands\CreateAccountCommandHandler;
-use App\Application\Handlers\Commands\DeleteAccountCommandHandler;
-use App\Persistence\Interfaces\AccountRepositoryInterface;
+use App\Jobs\CreateAccountJob;
+use App\Jobs\DeleteAccountJob;
+use App\Jobs\DeleteUserJob;
 
 class UserService implements UserServiceInterface
 {
     private CommandBusInterface $commandBus;
     private QueryBusInterface $queryBus;
-    private AccountRepositoryInterface $accountRepository;
-    private CreateAccountCommandHandler $createAccountHandler;
-    private DeleteAccountCommandHandler $deleteAccountHandler;
 
     public function __construct(
         CommandBusInterface $commandBus,
-        QueryBusInterface $queryBus,
-        AccountRepositoryInterface $accountRepository,
-        CreateAccountCommandHandler $createAccountHandler,
-        DeleteAccountCommandHandler $deleteAccountHandler
+        QueryBusInterface $queryBus
     ) {
         $this->commandBus = $commandBus;
         $this->queryBus = $queryBus;
-        $this->accountRepository = $accountRepository;
-        $this->createAccountHandler = $createAccountHandler;
-        $this->deleteAccountHandler = $deleteAccountHandler;
     }
 
     public function getAllUsers(): array
@@ -49,19 +38,12 @@ class UserService implements UserServiceInterface
     {
         // Création de l'utilisateur
         $user = $this->commandBus->dispatch(
-            new CreateUserCommand(
-                $dto->nom,
-                $dto->prenom,
-                $dto->email,
-                $dto->telephone
-            )
+            new CreateUserCommand($dto->nom, $dto->prenom, $dto->email, $dto->telephone)
         );
 
-        // Création automatique du compte associé
+        // Création du compte via Job (RabbitMQ)
         $name = $user->nom . ' ' . $user->prenom;
-        $this->createAccountHandler->handle(
-            new CreateAccountCommand($user->id, $name)
-        );
+        CreateAccountJob::dispatch($user->id, $name);
 
         return $user;
     }
@@ -86,13 +68,10 @@ class UserService implements UserServiceInterface
 
     public function deleteUser(int $id): bool
     {
-        // Supprimer le compte associé si existant
-        $account = $this->accountRepository->findByUserId($id);
-        if ($account) {
-            $this->deleteAccountHandler->handle(new DeleteAccountCommand($account->id));
-        }
+        // Supprime le compte associé via Job
+        DeleteAccountJob::dispatch($id);
 
-        // Supprimer l'utilisateur
+        // Supprime l'utilisateur
         return $this->commandBus->dispatch(new DeleteUserCommand($id));
     }
 }
