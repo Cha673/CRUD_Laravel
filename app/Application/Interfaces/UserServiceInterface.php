@@ -20,4 +20,11 @@ interface UserServiceInterface
     public function updateUser(int $id, UserDTO $dto): ?UserEntity;
 
     public function deleteUser(int $id): bool;
+
+    /**
+     * Récupère un utilisateur avec ses comptes associés
+     * @param int $userId
+     * @return array
+     */
+    public function getUserWithAccounts(int $userId): array;
 }

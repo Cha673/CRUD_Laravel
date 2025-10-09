@@ -75,4 +75,9 @@ class UserService implements UserServiceInterface
         // Supprime l'utilisateur
         return $this->commandBus->dispatch(new DeleteUserCommand($id));
     }
+
+    public function getUserWithAccounts(int $userId): array
+    {
+        return $this->queryBus->dispatch(new GetUserWithAccountsQuery($userId));
+    }
 }

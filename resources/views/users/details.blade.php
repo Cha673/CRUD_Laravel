@@ -8,8 +8,7 @@
     <div class="container mt-5">
         <h1>Détails de l'utilisateur et comptes associés</h1>
         
-        @if(isset($data['accounts']))
-        
+        @if(isset($data['accounts']))            
             <div class="card mb-4">
                 <div class="card-header">
                     <h3>Comptes associés à l'utilisateur #{{$data['userId']}}</h3>
