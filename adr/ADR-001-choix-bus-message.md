@@ -6,53 +6,57 @@ Faire communiquer des services au retour très varié entre eux avec une faible 
 
 ## Contexte
 
-L’architecture microservices de Streamify nécessite un bus de messages pour gérer la communication asynchrone entre services :
+L’architecture microservices nécessite un bus de messages pour gérer la communication asynchrone (événements métier, logs, notifications, synchronisation des données).
 
--   Événements métier
--   Logs et notifications
--   Synchronisation des données
+## Objectif
 
-L’objectif est de choisir la technologie la plus adaptée au contexte de Streamify.
+Choisir la technologie la plus adaptée au contexte de Streamify.
 
 ## Options
 
 ### RabbitMQ – File de messages robuste et simple à mettre en œuvre
 
-Robustesse et simplicité : RabbitMQ est une file de messages fiable et facile à mettre en œuvre.  
-Performance : offre un bon débit et une faible latence, mais ses performances varient selon la taille des messages, le nombre de consommateurs et le type d’échange.  
-Limite à grande échelle : moins efficace que Kafka pour les charges massives.  
-Fiabilité : possibilité de marquer les messages comme persistants pour assurer leur sauvegarde sur disque en cas de panne.  
-Coût et maintenance : logiciel open-source, avec une documentation complète, une communauté active et des options de support professionnel.
+-   **Robustesse et simplicité** : File de messages fiable et facile à mettre en œuvre.
+-   **Performance** : Bon débit et faible latence, mais performances variables selon taille des messages, nombre de consommateurs et type d’échange. Débit diminue au-delà de 30 Mo/s et latence augmente.
+-   **Limite à grande échelle** : Moins efficace que Kafka pour les charges massives.
+-   **Fiabilité** : Messages persistants possibles pour sauvegarde sur disque.
+-   **Coût et maintenance** : Open-source, documentation complète, communauté active. Options de support professionnel : ~1 999 $ pour le plan illimité (100 000 connexions simultanées, 400 Go de stockage persistant).
 
 ### Kafka – Plateforme d’événements hautement scalable et persistante
 
-Scalabilité et performance : Kafka est une plateforme d’événements hautement scalable, capable de traiter des millions de messages par seconde.  
-Utilisation à grande échelle : adopté par des entreprises comme Netflix pour la gestion de flux de données massifs.  
-Stockage et vitesse : écrit directement sur le disque sans passer par la mémoire vive, assurant rapidité et persistance.  
-Architecture distribuée : les clusters Kafka regroupent plusieurs brokers, permettant d’augmenter facilement la capacité en ajoutant de nouveaux nœuds.  
-Maintenance : la gestion interne est complexe (équilibrage des données, couplage stockage-calcul). Il est conseillé d’utiliser des services managés plutôt que de l’héberger soi-même.
+-   **Scalabilité et performance** : Traite des millions de messages par seconde, jusqu'à 2 millions avec latence p99 de 5 ms.
+-   **Utilisation à grande échelle** : Adopté par Netflix pour la gestion de flux massifs. Coût approximatif : 147 $ (3 nœuds de base) + 0.27$/Gib/mois.
+-   **Stockage et vitesse** : Écriture directe sur disque, rapide et persistante.
+-   **Architecture distribuée** : Clusters avec plusieurs brokers, capacité augmentable en ajoutant des nœuds.
+-   **Maintenance** : Gestion complexe (équilibrage des données, couplage stockage-calcul). Recommandé d’utiliser un service managé.
 
 ### NATS / JetStream – Solution légère et rapide pour la communication interne
 
-Légèreté et rapidité : NATS est une solution de messagerie simple, rapide et à très faible latence, idéale pour la communication interne.  
-Livraison des messages : par défaut, NATS ne garantit pas la livraison — les messages non récupérés sont perdus.  
-Persistance optionnelle : pour assurer la durabilité des messages, il faut utiliser NATS Streaming (JetStream), qui stocke les messages sur disque mais réduit les performances.  
-Scalabilité : supporte le clustering, permettant de gérer de nombreuses connexions simultanées tout en conservant une faible latence.  
-Limites : la non-persistance native rend NATS moins adapté lorsque la fiabilité des messages est essentielle.
+-   **Légèreté et rapidité** : Très faible latence, idéale pour communication interne.
+-   **Livraison des messages** : Par défaut, non garantie — messages non récupérés perdus.
+-   **Persistance optionnelle** : Avec NATS Streaming (JetStream), messages stockés sur disque mais performances réduites.
+-   **Scalabilité** : Supporte le clustering, faible latence maintenue.
+-   **Limites** : Non-persistance native, max 160 000 messages par seconde. Coût : 49 $ (plan Starter) incluant 3 comptes, 100 connexions, 100 Go de données réseau et 10 Go de stockage.
 
 ### Azure Service Bus – Solution managée cloud
 
-Performance : Azure Service Bus offre un bon débit et une faible latence, adaptés à la majorité des échanges interservices.  
-Persistance et relecture : les messages peuvent être persistés et relus via les files de secours (DLQ), garantissant une haute fiabilité.  
-Complexité d’exploitation et monitoring : la configuration est plus complexe, mais le service s’intègre bien avec Azure Monitor pour le suivi.  
-Résilience et scalabilité : haute disponibilité assurée, mais la scalabilité reste limitée sur le plan Standard.  
-Coût et maintenance : le plan Premium apporte de meilleures performances au prix d’un coût plus élevé et d’une gestion plus exigeante.
+-   **Performance** : Bon débit et faible latence, adapté à la majorité des échanges interservices.
+-   **Persistance et relecture** : Messages persistés et relus via files de secours (DLQ), haute fiabilité.
+-   **Complexité d’exploitation et monitoring** : Configuration plus complexe, intégration avec Azure Monitor.
+-   **Résilience et scalabilité** : Haute disponibilité, scalabilité limitée sur plan Standard.
+-   **Coût et maintenance** : Plan Premium : ~700 $, meilleures performances mais gestion plus exigeante.
 
 ## Conclusion
 
-Kafka est retenu comme solution pour Streamify grâce à sa scalabilité horizontale, sa persistance native et sa faible latence, ce qui permet de gérer des volumes massifs de messages tout en assurant la relecture et la durabilité des événements. Son écosystème mature facilite le traitement temps réel et l’intégration de données.
+Kafka est retenu pour Streamify grâce à :
 
-En revanche, Kafka présente une complexité d’exploitation et un coût de maintenance plus élevés, ce qui justifie l’usage recommandé d’une solution managée pour réduire la charge opérationnelle.
+-   Scalabilité horizontale
+-   Persistance native
+-   Faible latence
+
+Cela permet de gérer des volumes massifs de messages tout en assurant la relecture et la durabilité des événements. Son écosystème mature facilite le traitement temps réel et l’intégration de données.
+
+**Inconvénient** : Complexité d’exploitation et coût de maintenance plus élevés, justifiant l’usage recommandé d’une solution managée.
 
 ## Conséquences
 
