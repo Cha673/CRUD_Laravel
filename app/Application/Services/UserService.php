@@ -11,6 +11,7 @@ use App\Application\Commands\UpdateUserCommand;
 use App\Application\Commands\DeleteUserCommand;
 use App\Application\Queries\GetAllUsersQuery;
 use App\Application\Queries\GetUserByIdQuery;
+use App\Application\Queries\GetUserWithAccountsQuery;
 use App\Domain\Entity\UserEntity;
 use App\Jobs\CreateAccountJob;
 use App\Jobs\DeleteAccountJob;

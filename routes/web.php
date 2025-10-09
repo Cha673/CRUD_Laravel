@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Presentation\Http\Controllers\Web\YourController;
+use App\Http\Controllers\UserCompositeController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -20,3 +21,6 @@ Route::delete('/users/{id}', [YourController::class, 'destroy'])->name('users.de
 Route::get('/accounts/create', [YourController::class, 'createAccount'])->name('accounts.create'); // Formulaire de test
 Route::post('/accounts', [YourController::class, 'storeAccount'])->name('accounts.store');        // Créer un compte
 Route::delete('/accounts/{id}', [YourController::class, 'destroyAccount'])->name('accounts.destroy'); // Supprimer un compte
+
+// Route pour afficher un utilisateur avec ses comptes (Vue)
+Route::get('/users/{id}/details', [UserCompositeController::class, 'showUserWithAccounts'])->name('users.details');

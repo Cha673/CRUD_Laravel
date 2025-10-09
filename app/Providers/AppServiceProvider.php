@@ -35,6 +35,7 @@ use App\Application\Handlers\Commands\DeleteAccountCommandHandler;
 // User
 use App\Application\Handlers\Queries\GetAllUsersQueryHandler;
 use App\Application\Handlers\Queries\GetUserByIdQueryHandler;
+use App\Application\Handlers\Queries\GetUserWithAccountsHandler;
 // Account
 use App\Application\Handlers\Queries\GetAllAccountQueryHandler;
 
@@ -45,6 +46,7 @@ use App\Application\Commands\UpdateUserCommand;
 use App\Application\Commands\DeleteUserCommand;
 use App\Application\Queries\GetAllUsersQuery;
 use App\Application\Queries\GetUserByIdQuery;
+use App\Application\Queries\GetUserWithAccountsQuery;
 // Account
 use App\Application\Commands\CreateAccountCommand;
 use App\Application\Commands\DeleteAccountCommand;
@@ -71,6 +73,10 @@ class AppServiceProvider extends ServiceProvider
         // User Query Handlers
         $this->app->bind(GetAllUsersQueryHandler::class, fn($app) => new GetAllUsersQueryHandler($app->make(UserRepositoryInterface::class)));
         $this->app->bind(GetUserByIdQueryHandler::class, fn($app) => new GetUserByIdQueryHandler($app->make(UserRepositoryInterface::class)));
+        $this->app->bind(GetUserWithAccountsHandler::class, fn($app) => new GetUserWithAccountsHandler(
+            $app->make(UserRepositoryInterface::class),
+            $app->make(AccountRepositoryInterface::class)
+        ));
 
         // Account Command Handlers
         $this->app->bind(CreateAccountCommandHandler::class, fn($app) => new CreateAccountCommandHandler($app->make(AccountRepositoryInterface::class)));
@@ -110,6 +116,7 @@ class AppServiceProvider extends ServiceProvider
         // User Queries
         $queryBus->registerHandler(GetAllUsersQuery::class, $this->app->make(GetAllUsersQueryHandler::class));
         $queryBus->registerHandler(GetUserByIdQuery::class, $this->app->make(GetUserByIdQueryHandler::class));
+        $queryBus->registerHandler(GetUserWithAccountsQuery::class, $this->app->make(GetUserWithAccountsHandler::class));
 
         // Account Queries
         $queryBus->registerHandler(GetAllAccountQuery::class, $this->app->make(GetAllAccountQueryHandler::class));

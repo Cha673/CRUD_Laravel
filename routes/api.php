@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Presentation\Http\Controllers\Api\UserApiController;
 use App\Presentation\Http\Controllers\AccountController;
+use App\Http\Controllers\UserCompositeController;
 
 // Liste tous les utilisateurs
 Route::get('/users', [UserApiController::class, 'index']);
@@ -24,4 +25,6 @@ Route::get('/accounts', [AccountController::class, 'index']);
 Route::post('/accounts', [AccountController::class, 'store']);
 Route::delete('/accounts/{id}', [AccountController::class, 'destroy']);
 
+// Route pour obtenir un utilisateur avec ses comptes (API)
+Route::get('/users/{id}/accounts', [UserCompositeController::class, 'getUserWithAccounts']);
 

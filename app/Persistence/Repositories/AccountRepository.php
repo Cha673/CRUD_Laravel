@@ -42,17 +42,42 @@ class AccountRepository implements AccountRepositoryInterface
         return (bool) $record;
     }
 
+    // Récupérer tous les comptes d'un utilisateur
+    public function getAllAccountsByUserId(int $userId): array
+    {
+        return (new Account)->newQuery()
+            ->where('user_id', $userId)
+            ->orderBy('id', 'desc')
+            ->get()
+            ->map(function ($m) {
+                return new AccountEntity(
+                    $m->id !== null ? (int) $m->id : null,
+                    (int) $m->user_id,
+                    $m->name
+                );
+            })
+            ->toArray();
+    }
+
     //trouver un compte en fonction de l'userId
     public function findByUserId(int $userId): ?AccountEntity
     {
-        $m = (new Account)->newQuery()->where('user_id', $userId)->first();
+        // Récupérer tous les comptes pour cet utilisateur
+        $accounts = (new Account)->newQuery()
+            ->where('user_id', $userId)
+            ->orderBy('id', 'desc')  // Pour avoir le compte le plus récent
+            ->get();
+            
+        // Retourner le premier compte trouvé
+        if ($accounts->isEmpty()) {
+            return null;
+        }
 
-        return $m 
-            ? new AccountEntity(
-                $m->id !== null ? (int) $m->id : null,
-                (int) $m->user_id,
-                $m->name
-            )
-            : null;
+        $m = $accounts->first();
+        return new AccountEntity(
+            $m->id !== null ? (int) $m->id : null,
+            (int) $m->user_id,
+            $m->name
+        );
     }
 }
